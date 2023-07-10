@@ -2,6 +2,7 @@ import {createRoomWithUser, getRooms, getUserBySessionId} from "../storage";
 import {CommandType} from "../commands";
 import {ICommand} from "./command";
 import {IResponse} from "../response";
+import {WebSocket} from "ws";
 
 
 
@@ -12,7 +13,7 @@ export interface RoomResponse extends IResponse {
 }
 
 export class CreateRoomCommand implements ICommand {
-    public process(_: object|undefined, sessionId: string): RoomResponse {
+    public process(_: object|undefined, sessionId: string, _1: WebSocket): RoomResponse {
         try {
             const user = getUserBySessionId(sessionId);
 
@@ -24,7 +25,7 @@ export class CreateRoomCommand implements ICommand {
 
             return {
                 type: CommandType.UPDATE_ROOM,
-                data: JSON.stringify(getRooms()),
+                data: JSON.stringify(getRooms(sessionId)),
                 id: 0,
             } as RoomResponse
         } catch (error) {
@@ -32,7 +33,7 @@ export class CreateRoomCommand implements ICommand {
 
             return {
                 type: CommandType.UPDATE_ROOM,
-                data: JSON.stringify(getRooms()),
+                data: JSON.stringify(getRooms(sessionId)),
                 id: 0,
             } as RoomResponse
         }

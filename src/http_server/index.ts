@@ -4,7 +4,7 @@ import * as http from 'http';
 import { WebSocketServer } from 'ws';
 import {process} from "../commands";
 
-const ws = new WebSocketServer({ port: 3000 });
+const wsc = new WebSocketServer({ port: 3000 });
 
 export const httpServer = http.createServer(function (req, res) {
     const __dirname = path.resolve(path.dirname(''));
@@ -22,26 +22,33 @@ export const httpServer = http.createServer(function (req, res) {
 
 });
 
-ws.on('connection', function connection(ws, req) {
-    ws.on('error', function (error) {
+wsc.on('connection', function connection(wss, req) {
+    wss.on('error', function (error) {
         console.error(error);
     });
 
-    ws.on('message', function message(data) {
-        const requestData = JSON.parse(data.toString());
-        console.log('Request: ', data.toString());
-        const response = process(
-            requestData.type,
-            req.headers['sec-websocket-key']!,
-            requestData.data
-        );
+    wss.on('message', function message(data) {
+        try {
+            const requestData = JSON.parse(data.toString());
 
-        if (response !== undefined && typeof response === 'object') {
-            const jsonResponse = JSON.stringify(response);
+            console.log('Request: ', data.toString());
 
-            console.log('Response: ', jsonResponse);
+            const response = process(
+                requestData.type,
+                req.headers['sec-websocket-key']!,
+                requestData.data,
+                wss
+            );
 
-            ws.send(jsonResponse);
+            if (response !== undefined && typeof response === 'object') {
+                const jsonResponse = JSON.stringify(response);
+
+                console.log('Response: ', jsonResponse);
+
+                wss.send(jsonResponse);
+            }
+        } catch (error) {
+
         }
     });
 });

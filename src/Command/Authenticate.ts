@@ -2,6 +2,7 @@ import {getOrCreateUser} from "../storage";
 import {CommandType} from "../commands";
 import {ICommand} from "./command";
 import {IResponse} from "../response";
+import {WebSocket} from "ws";
 
 export interface AuthenticationRequest {
     name: string;
@@ -15,10 +16,10 @@ interface AuthenticationResponse extends IResponse{
 }
 
 export class AuthenticationCommand implements ICommand {
-    public process(data: AuthenticationRequest, sessionId: string): AuthenticationResponse {
+    public process(data: AuthenticationRequest, sessionId: string, ws: WebSocket): AuthenticationResponse {
         try {
             const {name, password}:AuthenticationRequest = data as AuthenticationRequest;
-            const result = getOrCreateUser(name, password, sessionId);
+            const result = getOrCreateUser(name, password, sessionId, ws);
 
             if (result === undefined || result.index === -1) {
                 throw new Error('user authentication issue occurred');
