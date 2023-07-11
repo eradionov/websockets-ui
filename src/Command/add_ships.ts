@@ -14,6 +14,7 @@ export interface ShipsRequest {
             length: number;
             type: string;
             direction: boolean;
+            hit: 0;
         }
     ]
 }

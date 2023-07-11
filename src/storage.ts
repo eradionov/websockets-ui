@@ -47,6 +47,7 @@ export interface Ship {
     length: number;
     type: ShipType;
     direction: boolean;
+    hit: number;
 }
 
 const users: User[] = [];
@@ -127,14 +128,11 @@ export const addShipsToGame = (gameId: number, sessionId: string, ships: Ship[])
 export const getGameReadiness = (gameId: number): boolean => {
     const foundGames: Game[]|undefined = games.filter(game => game.id === gameId);
 
-    if (foundGames === undefined) {
-        return false;
-    }
-    if (foundGames.length < 2) {
-        return false;
-    }
-
-    if (foundGames.filter(foundGames => foundGames.ships.length > 0).length < 2) {
+    if (
+        foundGames === undefined
+        || foundGames.length < 2
+        || foundGames.filter(foundGames => foundGames.ships.length > 0).length < 2
+    ) {
         return false;
     }
 

@@ -3,6 +3,7 @@ import {CreateRoomCommand} from "./Command/create_room";
 import {AddUserToRoomCommand, RoomRequest} from "./Command/add_user_to_room";
 import {WebSocket} from "ws";
 import {AddShipsCommand, ShipsRequest} from "./Command/add_ships";
+import {AttackCommand, IAttack} from "./Command/attack";
 
 export enum CommandType {
     REGISTRATION = 'reg',
@@ -12,7 +13,9 @@ export enum CommandType {
     ADD_TO_ROOM = 'add_user_to_room',
     CREATE_GAME = 'create_game',
     ADD_SHIPS = 'add_ships',
-    START_GAME = 'start_game'
+    START_GAME = 'start_game',
+    ATTACK = 'attack',
+    TURN = 'TURN'
 }
 
 export const process = (type: CommandType, sessionId: string, data: string, ws: WebSocket) => {
@@ -36,6 +39,9 @@ export const process = (type: CommandType, sessionId: string, data: string, ws: 
       case CommandType.ADD_SHIPS:
           const shipsRequest: ShipsRequest = JSON.parse(data);
           return (new AddShipsCommand()).process(shipsRequest, sessionId, ws);
+    case CommandType.ATTACK:
+        const attackRequest = JSON.parse(data) as IAttack;
+        return (new AttackCommand()).process(attackRequest, sessionId, ws);
       case CommandType.ADD_TO_ROOM:
           parsedData = JSON.parse(data);
 

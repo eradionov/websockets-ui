@@ -43,7 +43,7 @@ wsc.on('connection', function connection(wss, req) {
             if (response !== undefined && typeof response === 'object') {
                 const jsonResponse = JSON.stringify(response);
 
-                // console.log('Response: ', jsonResponse);
+                console.log('Response: ', jsonResponse);
 
                 wss.send(jsonResponse);
             }
