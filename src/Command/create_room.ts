@@ -25,7 +25,7 @@ export class CreateRoomCommand implements ICommand {
 
             return {
                 type: CommandType.UPDATE_ROOM,
-                data: JSON.stringify(getRooms(sessionId)),
+                data: JSON.stringify(getRooms()),
                 id: 0,
             } as RoomResponse
         } catch (error) {
@@ -33,7 +33,7 @@ export class CreateRoomCommand implements ICommand {
 
             return {
                 type: CommandType.UPDATE_ROOM,
-                data: JSON.stringify(getRooms(sessionId)),
+                data: JSON.stringify(getRooms()),
                 id: 0,
             } as RoomResponse
         }

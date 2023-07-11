@@ -2,6 +2,7 @@ import {AuthenticationCommand, AuthenticationRequest} from "./Command/Authentica
 import {CreateRoomCommand} from "./Command/create_room";
 import {AddUserToRoomCommand, RoomRequest} from "./Command/add_user_to_room";
 import {WebSocket} from "ws";
+import {AddShipsCommand, ShipsRequest} from "./Command/add_ships";
 
 export enum CommandType {
     REGISTRATION = 'reg',
@@ -9,7 +10,9 @@ export enum CommandType {
     CREATE_ROOM = 'create_room',
     UPDATE_ROOM = 'update_room',
     ADD_TO_ROOM = 'add_user_to_room',
-    CREATE_GAME = 'create_game'
+    CREATE_GAME = 'create_game',
+    ADD_SHIPS = 'add_ships',
+    START_GAME = 'start_game'
 }
 
 export const process = (type: CommandType, sessionId: string, data: string, ws: WebSocket) => {
@@ -30,6 +33,9 @@ export const process = (type: CommandType, sessionId: string, data: string, ws: 
           return (new AuthenticationCommand()).process(authenticationRequest, sessionId, ws);
       case CommandType.CREATE_ROOM:
           return (new CreateRoomCommand()).process(undefined, sessionId, ws);
+      case CommandType.ADD_SHIPS:
+          const shipsRequest: ShipsRequest = JSON.parse(data);
+          return (new AddShipsCommand()).process(shipsRequest, sessionId, ws);
       case CommandType.ADD_TO_ROOM:
           parsedData = JSON.parse(data);
 
@@ -61,6 +67,6 @@ export const process = (type: CommandType, sessionId: string, data: string, ws: 
               }));
           });
 
-            return;
+        return;
   }
 };

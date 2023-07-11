@@ -1,12 +1,12 @@
 import {createHash} from "crypto";
 import {WebSocket} from "ws";
 
-// enum ShipType {
-//     SMALL = 'small',
-//     MEDIUM = 'medium',
-//     LARGE = 'large',
-//     HUGE = 'huge'
-// }
+enum ShipType {
+    SMALL = 'small',
+    MEDIUM = 'medium',
+    LARGE = 'large',
+    HUGE = 'huge'
+}
 
 export interface User {
     id: number
@@ -29,31 +29,25 @@ export interface Room {
 
 const rooms: Room[] = [];
 
-//
-// interface Room {
-//     id: number;
-//     users: User[];
-//     password: string;
-//     wins: number;
-// }
 
 export interface Game {
     id: number;
     player: User;
     wins: number;
+    ships: Ship[];
 }
 
 const games: Game[] = [];
-//
-// interface Ship {
-//     position: {
-//         x: number;
-//         y: number;
-//     };
-//     length: number;
-//     type: ShipType;
-//
-// }
+
+export interface Ship {
+    position: {
+        x: number;
+        y: number;
+    };
+    length: number;
+    type: ShipType;
+    direction: boolean;
+}
 
 const users: User[] = [];
 const MAX_ROOM_USERS = 2;
@@ -82,7 +76,7 @@ export const createRoomWithUser = (user: User) => {
     rooms.push({roomId: rooms.length, roomUsers: [user]});
 };
 
-export const getRooms = (sessionId: string) => rooms.filter(room => room.roomUsers.length < MAX_ROOM_USERS || room.roomUsers.find(user => user.sessionId === sessionId) === undefined);
+export const getRooms = () => rooms.filter(room => room.roomUsers.length < MAX_ROOM_USERS);
 
 export const addUserToRoom = (roomIndex: number, sessionId: string) => {
     const requestedRoomIndex = rooms.findIndex(room => room.roomId === roomIndex);
@@ -114,8 +108,39 @@ export const createGame = (roomId: number, userSessionId: string) => {
     if (user === undefined) {
         throw new Error('User is not found');
     }
-    const game = {player: user, id: roomId, wins: 0} as Game;
+    const game = {player: user, id: roomId, wins: 0, ships: []} as Game;
     games.push(game);
 
     return game;
 };
+
+export const addShipsToGame = (gameId: number, sessionId: string, ships: Ship[]) => {
+  const game = games.find(game => game.id === gameId && game.player.sessionId === sessionId);
+
+  if (game === undefined) {
+      throw new Error(`Game ${gameId} is not found`);
+  }
+
+  game.ships = ships;
+};
+
+export const getGameReadiness = (gameId: number): boolean => {
+    const foundGames: Game[]|undefined = games.filter(game => game.id === gameId);
+
+    if (foundGames === undefined) {
+        return false;
+    }
+    if (foundGames.length < 2) {
+        return false;
+    }
+
+    if (foundGames.filter(foundGames => foundGames.ships.length > 0).length < 2) {
+        return false;
+    }
+
+    return true;
+}
+
+export const findGameById = (gameId: number) => {
+    return games.filter(game => game.id === gameId);
+}
