@@ -34,6 +34,7 @@ export interface Game {
     id: number;
     player: User;
     wins: number;
+    gameCompleted: boolean
     ships: Ship[];
 }
 
@@ -48,6 +49,7 @@ export interface Ship {
     type: ShipType;
     direction: boolean;
     hit: number;
+    coordHits?: Map<string, string>;
 }
 
 const users: User[] = [];
@@ -109,7 +111,7 @@ export const createGame = (roomId: number, userSessionId: string) => {
     if (user === undefined) {
         throw new Error('User is not found');
     }
-    const game = {player: user, id: roomId, wins: 0, ships: []} as Game;
+    const game = {player: user, id: roomId, wins: 0, ships: [], gameCompleted: false} as Game;
     games.push(game);
 
     return game;
@@ -141,4 +143,8 @@ export const getGameReadiness = (gameId: number): boolean => {
 
 export const findGameById = (gameId: number) => {
     return games.filter(game => game.id === gameId);
+}
+
+export const getWinnersList = () => {
+    return games.filter(game => game.wins > 0);
 }

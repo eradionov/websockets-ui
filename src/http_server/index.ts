@@ -25,6 +25,10 @@ export const httpServer = http.createServer(function (req, res) {
 wsc.on('connection', function connection(wss, req) {
     wss.on('error', function (error) {
         console.error(error);
+
+        wsc.clients.forEach((socket) => {
+            socket.close();
+        });
     });
 
     wss.on('message', function message(data) {
@@ -33,22 +37,19 @@ wsc.on('connection', function connection(wss, req) {
 
             console.log('Request: ', data.toString());
 
-            const response = process(
+            process(
                 requestData.type,
                 req.headers['sec-websocket-key']!,
                 requestData.data,
-                wss
+                wss,
+                wsc
             );
-
-            if (response !== undefined && typeof response === 'object') {
-                const jsonResponse = JSON.stringify(response);
-
-                console.log('Response: ', jsonResponse);
-
-                wss.send(jsonResponse);
-            }
         } catch (error) {
+            console.error(error)
 
+            wsc.clients.forEach((socket) => {
+                socket.close();
+            });
         }
     });
 });

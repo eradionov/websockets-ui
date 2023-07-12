@@ -1,9 +1,9 @@
-import {AuthenticationCommand, AuthenticationRequest} from "./Command/Authenticate";
 import {CreateRoomCommand} from "./Command/create_room";
 import {AddUserToRoomCommand, RoomRequest} from "./Command/add_user_to_room";
-import {WebSocket} from "ws";
+import {WebSocket, WebSocketServer} from "ws";
 import {AddShipsCommand, ShipsRequest} from "./Command/add_ships";
 import {AttackCommand, IAttack} from "./Command/attack";
+import {AuthenticationCommand, AuthenticationRequest} from "./Command/authenticate";
 
 export enum CommandType {
     REGISTRATION = 'reg',
@@ -15,10 +15,13 @@ export enum CommandType {
     ADD_SHIPS = 'add_ships',
     START_GAME = 'start_game',
     ATTACK = 'attack',
-    TURN = 'TURN'
+    TURN = 'turn',
+    FINISH = 'finish',
+    UPDATE_WINNERS = 'update_winners',
+
 }
 
-export const process = (type: CommandType, sessionId: string, data: string, ws: WebSocket) => {
+export const process = (type: CommandType, sessionId: string, data: string, ws: WebSocket, wss: WebSocketServer) => {
     let parsedData;
 
     switch (type) {
@@ -33,15 +36,20 @@ export const process = (type: CommandType, sessionId: string, data: string, ws: 
               name: parsedData.name,
               password: parsedData.password,
           };
-          return (new AuthenticationCommand()).process(authenticationRequest, sessionId, ws);
+          (new AuthenticationCommand(ws, wss)).process(authenticationRequest, sessionId);
+          break;
       case CommandType.CREATE_ROOM:
-          return (new CreateRoomCommand()).process(undefined, sessionId, ws);
+          (new CreateRoomCommand(ws, wss)).process(undefined, sessionId);
+
+         break;
       case CommandType.ADD_SHIPS:
           const shipsRequest: ShipsRequest = JSON.parse(data);
-          return (new AddShipsCommand()).process(shipsRequest, sessionId, ws);
+          (new AddShipsCommand(ws, wss)).process(shipsRequest, sessionId);
+          break;
     case CommandType.ATTACK:
         const attackRequest = JSON.parse(data) as IAttack;
-        return (new AttackCommand()).process(attackRequest, sessionId, ws);
+        (new AttackCommand(ws, wss)).process(attackRequest, sessionId);
+        break;
       case CommandType.ADD_TO_ROOM:
           parsedData = JSON.parse(data);
 
@@ -53,26 +61,8 @@ export const process = (type: CommandType, sessionId: string, data: string, ws: 
               indexRoom: parsedData.indexRoom
           };
 
-          const gameResponse = (new AddUserToRoomCommand()).process(roomRequest, sessionId, ws);
+          (new AddUserToRoomCommand(ws, wss)).process(roomRequest, sessionId);
 
-          if (gameResponse.games.length === 0) {
-              throw new Error('Games can\'t be created');
-          }
-
-          gameResponse.games.forEach(game => {
-              const player = game.player;
-              game.player.ws.send(JSON.stringify({
-                  type: CommandType.CREATE_GAME,
-                  data:JSON.stringify(
-                      {
-                          idGame: game.id,
-                          idPlayer: player.id
-                      }
-                  ),
-                  id: 0,
-              }));
-          });
-
-        return;
+        break;
   }
 };

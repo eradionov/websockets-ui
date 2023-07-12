@@ -1,19 +1,9 @@
-import {createRoomWithUser, getRooms, getUserBySessionId} from "../storage";
-import {CommandType} from "../commands";
-import {ICommand} from "./command";
-import {IResponse} from "../response";
-import {WebSocket} from "ws";
+import {createRoomWithUser, getUserBySessionId} from "../storage";
+import {AbstractCommand} from "./command";
+import {updateRoomMessage, updateWinnersMessage} from "../utils";
 
-
-
-export interface RoomResponse extends IResponse {
-    type: string,
-    data: string,
-    id: number
-}
-
-export class CreateRoomCommand implements ICommand {
-    public process(_: object|undefined, sessionId: string, _1: WebSocket): RoomResponse {
+export class CreateRoomCommand extends AbstractCommand {
+    public process(_: object|undefined, sessionId: string) {
         try {
             const user = getUserBySessionId(sessionId);
 
@@ -22,20 +12,16 @@ export class CreateRoomCommand implements ICommand {
             }
 
             createRoomWithUser(user);
-
-            return {
-                type: CommandType.UPDATE_ROOM,
-                data: JSON.stringify(getRooms()),
-                id: 0,
-            } as RoomResponse
         } catch (error) {
             console.error(error);
-
-            return {
-                type: CommandType.UPDATE_ROOM,
-                data: JSON.stringify(getRooms()),
-                id: 0,
-            } as RoomResponse
         }
+
+        const rooms = updateRoomMessage();
+        const updatedWinners = updateWinnersMessage();
+
+        this.wss.clients.forEach(client => {
+            client.send(rooms);
+            client.send(updatedWinners);
+        });
     }
 }

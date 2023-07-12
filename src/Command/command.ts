@@ -1,6 +1,8 @@
-import {IResponse} from "../response";
-import {WebSocket} from "ws";
+import {WebSocket, WebSocketServer} from "ws";
 
-export interface ICommand {
-    process(data: object, sessionId: string, ws: WebSocket): IResponse|undefined
+export abstract class AbstractCommand {
+    constructor(protected readonly ws: WebSocket, protected readonly wss: WebSocketServer) {
+    }
+
+    public abstract process(data: object, sessionId: string): void;
 }

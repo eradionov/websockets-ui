@@ -1,7 +1,6 @@
-import {ICommand} from "./command";
-import {WebSocket} from "ws";
-import {addShipsToGame, findGameById, getGameReadiness, Ship} from "../storage";
-import {CommandType} from "../commands";
+import {AbstractCommand} from "./command";
+import {addShipsToGame, findGameById, Game, getGameReadiness, Ship} from "../storage";
+import {gameTurnMessage, startGameMessage} from "../utils";
 
 export interface ShipsRequest {
     gameId: number;
@@ -19,31 +18,31 @@ export interface ShipsRequest {
     ]
 }
 
-export class AddShipsCommand implements ICommand {
-    public process(shipRequest: ShipsRequest, sessionId: string, _: WebSocket):undefined {
+export class AddShipsCommand extends AbstractCommand {
+    public process(shipRequest: ShipsRequest, sessionId: string):undefined {
         let {ships} = shipRequest;
         const gameId = shipRequest.gameId;
+
+        const gameParticipantData = findGameById(gameId);
+        const currentPlayerGame: Game|undefined = gameParticipantData.find(game => game.player.sessionId === sessionId);
+
+        if (currentPlayerGame === undefined) {
+            throw new Error('Current player game was not found');
+        }
 
         addShipsToGame(shipRequest.gameId, sessionId, <Ship[]>ships);
 
         if (!getGameReadiness(gameId)) {
-            return undefined;
+
+            this.ws.send(gameTurnMessage(currentPlayerGame!.player.id));
+
+            return;
         }
 
         const games = findGameById(gameId);
 
-        if (games === undefined || games.length < 2) {
-            throw new Error('Game start issue');
-        }
-
         games.forEach(game => {
-            game.player.ws.send(JSON.stringify({
-                type: CommandType.START_GAME,
-                data: JSON.stringify({
-                    ships: JSON.stringify(game.ships)
-                }),
-                currentPlayerIndex: game.player.id
-            }));
+            game.player.ws.send(startGameMessage(game));
         });
     }
 }

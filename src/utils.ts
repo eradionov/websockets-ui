@@ -1,0 +1,84 @@
+import {CommandType} from "./commands";
+import {Game, getRooms, getWinnersList} from "./storage";
+
+export const updateRoomMessage = () => {
+    return JSON.stringify({
+        type: CommandType.UPDATE_ROOM,
+        data: JSON.stringify(getRooms()),
+        id: 0,
+    });
+};
+
+export const gameTurnMessage = (currentPlayerId: number) => {
+  return JSON.stringify({
+      type: CommandType.TURN,
+      data: JSON.stringify({
+          currentPlayer: currentPlayerId,
+      }),
+      id: 0,
+  });
+};
+
+export const createGameMessage = (gameId?: number, playerId?: number) => {
+    const data = gameId !== undefined && playerId !== undefined ? {
+        idGame: gameId,
+        idPlayer: playerId
+    } : [];
+
+    return JSON.stringify({
+        type: CommandType.CREATE_GAME,
+        data:JSON.stringify(data),
+        id: 0,
+    });
+};
+
+export const startGameMessage = (game: Game) => {
+    return JSON.stringify({
+        type: CommandType.START_GAME,
+        data: JSON.stringify({
+            ships: game.ships,
+        }),
+        currentPlayerIndex: game.player.id
+    });
+};
+
+export const registrationMessage = (username: string, userIndex: number, hasError: boolean, errorMessage: string = '') => {
+    return JSON.stringify({
+        type: CommandType.REGISTRATION,
+        data: JSON.stringify({
+            name: username,
+            index: userIndex,
+            error: hasError,
+            errorText: errorMessage
+        }),
+        id: 0
+    })
+};
+
+export const finishGameMessage = (winPlayerId: number) => {
+    return JSON.stringify({
+        type: CommandType.FINISH,
+        data: JSON.stringify({winPlayer: winPlayerId}),
+        id: 0
+    });
+}
+
+export const updateWinnersMessage = () => {
+    const winners = getWinnersList();
+    const winnersData: Array<{name: string, wins: number}> = [];
+
+    winners.forEach(winner => {
+        winnersData.push({
+            name: winner.player.name,
+            wins: winner.wins
+        });
+    })
+
+  return JSON.stringify(
+      {
+          type: CommandType.UPDATE_WINNERS,
+          data: JSON.stringify(winnersData),
+          id: 0,
+      }
+  );
+};

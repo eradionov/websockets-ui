@@ -1,21 +1,13 @@
-import {addUserToRoom, createGame, Game, getUserBySessionId} from "../storage";
-import {CommandType} from "../commands";
-import {ICommand} from "./command";
-import {IResponse} from "../response";
-import {WebSocket} from "ws";
+import {addUserToRoom, createGame, getUserBySessionId} from "../storage";
+import {AbstractCommand} from "./command";
+import {createGameMessage} from "../utils";
 
 export interface RoomRequest {
     indexRoom: number;
 }
 
-export interface GameResponse extends IResponse {
-    type: string;
-    games: Game[];
-    id: number;
-}
-
-export class AddUserToRoomCommand implements ICommand {
-    public process(roomRequest: RoomRequest, sessionId: string, _: WebSocket): GameResponse {
+export class AddUserToRoomCommand extends AbstractCommand {
+    public process(roomRequest: RoomRequest, sessionId: string) {
         try {
             const user = getUserBySessionId(sessionId);
 
@@ -33,19 +25,17 @@ export class AddUserToRoomCommand implements ICommand {
                 throw new Error('Game for users can\'t be created.');
             }
 
-            return {
-                type: CommandType.CREATE_GAME,
-                games: targetRoom.roomUsers.map(user => createGame(targetRoom.roomId, user.sessionId)),
-                id: 0
-            }  as GameResponse;
+            const games = targetRoom.roomUsers.map(user => createGame(targetRoom.roomId, user.sessionId));
+
+            games.forEach(game => {
+                const player = game.player;
+
+                game.player.ws.send(createGameMessage(game.id, player.id));
+            });
         } catch (error) {
             console.error(error);
 
-            return {
-                type: CommandType.CREATE_GAME,
-                games: [],
-                id: 0,
-            } as GameResponse;
+            this.ws.send(createGameMessage());
         }
     }
 }
