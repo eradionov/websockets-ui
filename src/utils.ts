@@ -1,5 +1,7 @@
 import {CommandType} from "./commands";
-import {Game, getRooms, getWinnersList} from "./storage";
+import {findGameByIdAndUserIndex, Game, getRooms, getWinnersList} from "./storage";
+
+const MAX_MATRIX_SIZE = 9;
 
 export const updateRoomMessage = () => {
     return JSON.stringify({
@@ -82,3 +84,34 @@ export const updateWinnersMessage = () => {
       }
   );
 };
+
+export const getRandomAttackCoords = (gameId: number, userIndexId: number): {x: number, y:number} => {
+    const game = findGameByIdAndUserIndex(gameId, userIndexId);
+
+    if (game === undefined || game.ships.length === 0) {
+        throw new Error('Game logic error');
+    }
+
+    const hitCoords: Array<string> = [];
+
+    game.ships.forEach(ship => {
+       if (ship.coordHits !== undefined) {
+           hitCoords.push(...ship.coordHits.keys());
+       }
+    });
+
+    let coords: Record<number, number> = getRandomCoords();
+
+    while (hitCoords.includes(`${coords[0]}:${coords[1]}`)) {
+        coords = getRandomCoords();
+    }
+
+    return {
+        x: coords[0]!,
+        y: coords[1]!,
+    };
+}
+
+const getRandomCoords = (): Record<number, number> => {
+    return [Math.ceil(Math.random() * MAX_MATRIX_SIZE), Math.ceil(Math.random() * MAX_MATRIX_SIZE)];
+}

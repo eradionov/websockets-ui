@@ -4,6 +4,7 @@ import {WebSocket, WebSocketServer} from "ws";
 import {AddShipsCommand, ShipsRequest} from "./Command/add_ships";
 import {AttackCommand, IAttack} from "./Command/attack";
 import {AuthenticationCommand, AuthenticationRequest} from "./Command/authenticate";
+import {getRandomAttackCoords} from "./utils";
 
 export enum CommandType {
     REGISTRATION = 'reg',
@@ -18,6 +19,7 @@ export enum CommandType {
     TURN = 'turn',
     FINISH = 'finish',
     UPDATE_WINNERS = 'update_winners',
+    RANDOM_ATTACK = 'randomAttack'
 
 }
 
@@ -64,5 +66,16 @@ export const process = (type: CommandType, sessionId: string, data: string, ws: 
           (new AddUserToRoomCommand(ws, wss)).process(roomRequest, sessionId);
 
         break;
+        case CommandType.RANDOM_ATTACK:
+            const {gameId, indexPlayer} = JSON.parse(data) as {gameId: number, indexPlayer: number};
+            const coords = getRandomAttackCoords(gameId, indexPlayer);
+            const randomAttackRequest = {
+                x: coords.x,
+                y: coords.y,
+                gameId: gameId,
+                indexPlayer: indexPlayer,
+            } as IAttack;
+            (new AttackCommand(ws, wss)).process(randomAttackRequest, sessionId);
+            break;
   }
 };

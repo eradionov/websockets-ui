@@ -46,10 +46,6 @@ wsc.on('connection', function connection(wss, req) {
             );
         } catch (error) {
             console.error(error)
-
-            wsc.clients.forEach((socket) => {
-                socket.close();
-            });
         }
     });
 });

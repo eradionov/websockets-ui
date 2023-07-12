@@ -1,6 +1,7 @@
 import {getOrCreateUser} from "../storage";
 import {AbstractCommand} from "./command";
 import {registrationMessage} from "../utils";
+import {validateUserInput} from "../validation";
 
 export interface AuthenticationRequest {
     name: string;
@@ -11,6 +12,8 @@ export class AuthenticationCommand extends AbstractCommand {
     public process(data: AuthenticationRequest, sessionId: string): undefined {
         try {
             const {name, password}:AuthenticationRequest = data as AuthenticationRequest;
+
+            validateUserInput(name, password);
             const result = getOrCreateUser(name, password, sessionId, this.ws);
 
             if (result === undefined || result.index === -1) {

@@ -145,6 +145,9 @@ export const findGameById = (gameId: number) => {
     return games.filter(game => game.id === gameId);
 }
 
+export const findGameByIdAndUserIndex = (gameId: number, userIndex: number) => {
+    return games.find(game => game.id === gameId && game.player.id === userIndex);
+};
 export const getWinnersList = () => {
     return games.filter(game => game.wins > 0);
 }
