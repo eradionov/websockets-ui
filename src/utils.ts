@@ -1,5 +1,6 @@
 import {CommandType} from "./commands";
 import {findGameByIdAndUserIndex, Game, getRooms, getWinnersList} from "./storage";
+import {HitType} from "./Command/attack";
 
 const MAX_MATRIX_SIZE = 9;
 
@@ -29,7 +30,7 @@ export const createGameMessage = (gameId?: number, playerId?: number) => {
 
     return JSON.stringify({
         type: CommandType.CREATE_GAME,
-        data:JSON.stringify(data),
+        data: JSON.stringify(data),
         id: 0,
     });
 };
@@ -83,6 +84,23 @@ export const updateWinnersMessage = () => {
           id: 0,
       }
   );
+};
+
+export interface AttackResponseData {
+    position: {
+        x: number;
+        y: number;
+    }
+    currentPlayer: number;
+    status: HitType;
+}
+
+export const attackTypeMessage = (data: AttackResponseData, attackType: HitType, attackResponseId: number) => {
+    return JSON.stringify({
+        type: attackType,
+        data: JSON.stringify(data),
+        id: attackResponseId
+    });
 };
 
 export const getRandomAttackCoords = (gameId: number, userIndexId: number): {x: number, y:number} => {

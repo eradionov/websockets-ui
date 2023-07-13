@@ -1,4 +1,4 @@
-import {addUserToRoom, createGame, getUserBySessionId} from "../storage";
+import {addUserToRoom, createGame, getUserBySessionId, MAX_ROOM_USERS} from "../storage";
 import {AbstractCommand} from "./command";
 import {createGameMessage} from "../utils";
 
@@ -21,7 +21,7 @@ export class AddUserToRoomCommand extends AbstractCommand {
                 throw new Error('User to room assignment error.');
             }
 
-            if (targetRoom.roomUsers.length < 2) {
+            if (targetRoom.roomUsers.length < MAX_ROOM_USERS) {
                 throw new Error('Game for users can\'t be created.');
             }
 

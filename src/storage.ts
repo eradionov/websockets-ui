@@ -53,7 +53,7 @@ export interface Ship {
 }
 
 const users: User[] = [];
-const MAX_ROOM_USERS = 2;
+export const MAX_ROOM_USERS = 2;
 
 // TODO: does not follow SRP principle
 export const getOrCreateUser = (username: string, password: string, uniqueSessionId: string, ws: WebSocket) => {
@@ -82,10 +82,10 @@ export const createRoomWithUser = (user: User) => {
 export const getRooms = () => rooms.filter(room => room.roomUsers.length < MAX_ROOM_USERS);
 
 export const addUserToRoom = (roomIndex: number, sessionId: string) => {
-    const requestedRoomIndex = rooms.findIndex(room => room.roomId === roomIndex);
+    const requestedRoom = rooms.find(room => room.roomId === roomIndex);
     const user = users.find(user => user.sessionId === sessionId);
 
-    if (requestedRoomIndex === -1) {
+    if (requestedRoom === undefined) {
         throw new Error('Room with such index does not exist');
     }
 
@@ -93,14 +93,13 @@ export const addUserToRoom = (roomIndex: number, sessionId: string) => {
         throw new Error('User can\'t be added to specified room');
     }
 
-    if (rooms[roomIndex]!.roomUsers.find(user => user.sessionId === sessionId) !== undefined) {
+    if (requestedRoom.roomUsers.find(user => user.sessionId === sessionId) !== undefined) {
         throw new Error('User already exists in specified room');
     }
 
-    const targetRoom = rooms[roomIndex];
-    targetRoom!.roomUsers.push(user);
+    requestedRoom.roomUsers.push(user);
 
-    return targetRoom;
+    return requestedRoom;
 };
 
 export const getRoomByIndex = (id: number) => rooms.find(room => room.roomId === id);
@@ -132,8 +131,8 @@ export const getGameReadiness = (gameId: number): boolean => {
 
     if (
         foundGames === undefined
-        || foundGames.length < 2
-        || foundGames.filter(foundGames => foundGames.ships.length > 0).length < 2
+        || foundGames.length < MAX_ROOM_USERS
+        || foundGames.filter(foundGame => foundGame.ships.length > 0).length < MAX_ROOM_USERS
     ) {
         return false;
     }

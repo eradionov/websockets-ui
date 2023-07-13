@@ -1,7 +1,7 @@
 import {AbstractCommand} from "./command";
 import {findGameById, Game} from "../storage";
 import {CommandType} from "../commands";
-import {finishGameMessage, gameTurnMessage, updateWinnersMessage} from "../utils";
+import {attackTypeMessage, finishGameMessage, gameTurnMessage, updateWinnersMessage} from "../utils";
 
 export interface IAttack {
     x: number;
@@ -39,7 +39,7 @@ export class AttackCommand extends AbstractCommand{
             throw new Error('Game logic error');
         }
 
-        if (this.checkGameForCompletion(currentPlayerGame, counterPlayerGame)) {
+        if (this.checkGameWithCompletion(currentPlayerGame, counterPlayerGame)) {
             return;
         }
 
@@ -70,12 +70,10 @@ export class AttackCommand extends AbstractCommand{
 
                 if (alreadyHit) {
                     attackResponse.data.status = ship.coordHits.get(`${data.x}:${data.y}`) as HitType;
-                    console.log(attackResponse.data.status);
-                    currentPlayerGame.player.ws.send(JSON.stringify({
-                        type: attackResponse.type,
-                        data: JSON.stringify(attackResponse.data),
-                        id: attackResponse.id
-                    }));
+
+                    currentPlayerGame.player.ws.send(
+                        attackTypeMessage(attackResponse.data, attackResponse.type as HitType, attackResponse.id)
+                    );
 
                     continue;
                 }
@@ -88,13 +86,12 @@ export class AttackCommand extends AbstractCommand{
             }
         }
 
-        currentPlayerGame.player.ws.send(JSON.stringify({
-            type: attackResponse.type,
-            data: JSON.stringify(attackResponse.data),
-            id: attackResponse.id
-        }));
 
-        if (this.checkGameForCompletion(currentPlayerGame, counterPlayerGame)) {
+        currentPlayerGame.player.ws.send(
+            attackTypeMessage(attackResponse.data, attackResponse.type as HitType, attackResponse.id)
+        );
+
+        if (this.checkGameWithCompletion(currentPlayerGame, counterPlayerGame)) {
             return;
         }
 
@@ -102,7 +99,7 @@ export class AttackCommand extends AbstractCommand{
         counterPlayerGame.player.ws.send(gameTurnMessage(counterPlayerGame!.player.id));
     }
 
-    private checkGameForCompletion(currentPlayerGame: Game, counterPlayerGame: Game): boolean {
+    private checkGameWithCompletion(currentPlayerGame: Game, counterPlayerGame: Game): boolean {
         const currentPlayerKilledShips = currentPlayerGame.ships.filter(ship => ship.hit === ship.length);
         const counterPlayerKilledShips = counterPlayerGame.ships.filter(ship => ship.hit === ship.length);
 

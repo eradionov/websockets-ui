@@ -19,7 +19,7 @@ export interface ShipsRequest {
 }
 
 export class AddShipsCommand extends AbstractCommand {
-    public process(shipRequest: ShipsRequest, sessionId: string):undefined {
+    public process(shipRequest: ShipsRequest, sessionId: string): undefined {
         let {ships} = shipRequest;
         const gameId = shipRequest.gameId;
 
@@ -27,7 +27,7 @@ export class AddShipsCommand extends AbstractCommand {
         const currentPlayerGame: Game|undefined = gameParticipantData.find(game => game.player.sessionId === sessionId);
 
         if (currentPlayerGame === undefined) {
-            throw new Error('Current player game was not found');
+            throw new Error('Current player\'s game was not found');
         }
 
         addShipsToGame(shipRequest.gameId, sessionId, <Ship[]>ships);

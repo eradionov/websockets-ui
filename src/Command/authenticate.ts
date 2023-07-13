@@ -11,9 +11,10 @@ export interface AuthenticationRequest {
 export class AuthenticationCommand extends AbstractCommand {
     public process(data: AuthenticationRequest, sessionId: string): undefined {
         try {
-            const {name, password}:AuthenticationRequest = data as AuthenticationRequest;
+            const {name, password}: AuthenticationRequest = data as AuthenticationRequest;
 
             validateUserInput(name, password);
+
             const result = getOrCreateUser(name, password, sessionId, this.ws);
 
             if (result === undefined || result.index === -1) {
