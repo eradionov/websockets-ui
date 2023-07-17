@@ -11,6 +11,6 @@ Thumbs.db
 .idea/
 *.PEM
 .vscode/
-
+build/
 # Logs
 npm-debug.log
